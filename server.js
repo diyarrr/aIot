@@ -2,38 +2,40 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const processAudio = require('./audioHandler'); // Import the audio handler module
+const processAudio = require('./audioHandler');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
+//const mobileAppURL = //'http:///*MOBILE_PHONE_IP_ADRESS*/:8080/';
+//const relayAppURL = //'http://RELAY_MODULE_IP_ADRESS:80/relay';
 
-// Middleware to parse JSON bodies and increase the limit to handle large images
-app.use(express.json({ limit: '50mb' }));
-
-// Route to handle incoming object detection data
-app.post('/log-detection', (req, res) => {
-    const { label, confidence, image } = req.body;
-
-    // Log the detected object and confidence level
-    console.log(`Detected: ${label} with confidence: ${confidence.toFixed(2)}%`);
-
-    // Decode the base64 image and save it as a file
-    /*const imageBuffer = Buffer.from(image, 'base64');
-    const imagePath = path.join(__dirname, `detection_${Date.now()}.jpg`);
-    
-    fs.writeFile(imagePath, imageBuffer, (err) => {
-        if (err) {
-            console.error('Error saving image:', err);
-            return res.status(500).send('Failed to save image');
-        }
-        console.log(`Image saved at: ${imagePath}`);
-        res.status(200).send('Detection logged and image saved.');
-    });*/
-});
+app.use(express.json()); // For JSON requests
 
 app.get('/', (req, res) => {
   res.send('Server is running!');
+});
+
+// Route to handle raw payload (base64 image)
+app.post('/log-detection', express.raw({ type: '*/*', limit: '10mb' }), async (req, res) => {
+  try {
+    const base64String = req.body.toString('utf-8'); // Convert Buffer to string
+
+    const response = await fetch(mobileAppURL, {
+      method: 'POST',
+      body: base64String,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    console.log(`Alert sent to mobile app: ${response.status}`);
+    res.status(200).send('Intruder alert logged and forwarded to mobile app.');
+  } catch (error) {
+    console.error('Error forwarding alert to mobile app:', error.message);
+    res.status(500).send('Failed to forward alert to mobile app.');
+  }
 });
 
 // upload the audio file to the server and convert it to the text
@@ -49,7 +51,46 @@ app.post('/upload-audio', upload.single('audioFile'), (req, res) => {
     if (error) {
       return res.status(500).send('Error processing audio');
     }
-    res.status(200).send({ text: transcription });
+
+    const lowerTranscription = transcription.toLowerCase(); // To make the comparison case-insensitive
+
+    if ((lowerTranscription.includes("turn") && lowerTranscription.includes("on")) ||
+        (lowerTranscription.includes("turn") && lowerTranscription.includes("light") && lowerTranscription.includes("on"))) {
+        // Send a request to the URL with state "ON"
+        fetch(relayAppURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ relay: 1, state: "ON" })
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("State ON request sent successfully");
+                } else {
+                    console.error("Error sending state ON request:", response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error("Error sending state ON request:", error);
+            });
+    } else if ((lowerTranscription.includes("turn") && lowerTranscription.includes("off")) ||
+              (lowerTranscription.includes("turn") && lowerTranscription.includes("light") && lowerTranscription.includes("off"))) {
+        // Send a request to the URL with state "OFF"
+        fetch(relayAppURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ relay: 1, state: "OFF" })
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("State OFF request sent successfully");
+                } else {
+                    console.error("Error sending state OFF request:", response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error("Error sending state OFF request:", error);
+            });
+    }
   });
 });
 
