@@ -1,4 +1,4 @@
-# IoT Server Project
+# aIoT Smart Home Application
 
 This IoT project is designed to integrate multiple technologies for home automation and security. The system enables communication between a mobile application, an IoT server running on a Raspberry Pi, and a relay module to control devices and provide security alerts. The project uses audio processing, speech recognition, and face recognition to deliver an intelligent and efficient solution.
 
