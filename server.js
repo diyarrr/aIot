@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const processAudio = require('./audioHandler');
+const processAudio = require('./speech_to_text_service/audioHandler');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });

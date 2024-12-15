@@ -1,10 +1,12 @@
 const { spawn } = require('child_process');
+const path = require('path');
 
 function processAudio(filePath, callback) {
   console.log('Processing audio file:', filePath);
 
   // Spawn a child process to run the Python script
-  const pythonProcess = spawn('python3', ['speech_to_text.py', filePath]);
+  const pythonScriptPath = path.join(__dirname, 'speech_to_text.py');
+  const pythonProcess = spawn('python3', [pythonScriptPath, filePath]);
 
   let transcription = '';
 
@@ -30,3 +32,4 @@ function processAudio(filePath, callback) {
 }
 
 module.exports = processAudio;
+
