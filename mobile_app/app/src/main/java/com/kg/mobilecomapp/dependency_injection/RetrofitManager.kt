@@ -2,6 +2,7 @@ package com.kg.mobilecomapp.dependency_injection
 
 import android.content.Context
 import com.kg.mobilecomapp.data.remote.AudioApiService
+import com.kg.mobilecomapp.utility.SharedPreferencesIpAddress
 import dagger.hilt.android.qualifiers.ApplicationContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -50,25 +51,27 @@ class RetrofitManager @Inject constructor(
     fun updateBaseUrl(newBaseUrl: String) {
         baseUrl = newBaseUrl
         retrofit = createRetrofit()
-        saveBaseUrlToPreferences(newBaseUrl)
+        SharedPreferencesIpAddress.saveIpAddress(context , newBaseUrl)
     }
 
     // Get Retrofit Instance
     fun getRetrofit(): Retrofit {
         if (retrofit == null) {
-            baseUrl = getBaseUrlFromPreferences() ?: baseUrl
+            baseUrl = SharedPreferencesIpAddress.getSavedIpAddress(context) ?: baseUrl
             retrofit = createRetrofit()
         }
         return retrofit!!
     }
 
-    private fun saveBaseUrlToPreferences(url: String) {
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putString("base_url", url).apply()
-    }
+//    private fun saveBaseUrlToPreferences(url: String) {
+//        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+//        sharedPreferences.edit().putString("base_url", url).apply()
+//        SharedPreferencesIpAddress.isSaved = true
+//        SharedPreferencesIpAddress.saveIpAddress(context, url)
+//    }
 
-    private fun getBaseUrlFromPreferences(): String? {
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("base_url", null)
-    }
+//    private fun getBaseUrlFromPreferences(): String? {
+//        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+//        return sharedPreferences.getString("base_url", null)
+//    }
 }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kg.mobilecomapp.data.remote.AudioApiService
 import com.kg.mobilecomapp.data.remote.LocalHttpServer
 import com.kg.mobilecomapp.dependency_injection.RetrofitManager
 import com.kg.mobilecomapp.domain.repository.AudioRepository
@@ -13,6 +14,7 @@ import com.kg.mobilecomapp.record_play.abstracts.AudioPlayer
 import com.kg.mobilecomapp.record_play.abstracts.AudioRecorder
 import com.kg.mobilecomapp.record_play.concretes.AudioPlayerImpl
 import com.kg.mobilecomapp.record_play.concretes.AudioRecorderImpl
+import com.kg.mobilecomapp.utility.SharedPreferencesIpAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
@@ -30,10 +32,12 @@ class AudioViewModel @Inject constructor(
     private val audioRecorder : AudioRecorder,
     private val repository : AudioRepository,
     private val serverState: ServerState, // Inject the HTTP server
+    private val retrofitManager: RetrofitManager
 ) : ViewModel() {
     private val _state = mutableStateOf(AudioState())
     val state : State<AudioState> = _state
     private val outputFile : File = File(context.cacheDir, "record.mp3")
+    private val api = retrofitManager.getRetrofit().create(AudioApiService::class.java)
     init {
         (audioPlayer as? AudioPlayerImpl)?.onPlaybackComplete = {
             _state.value = _state.value.copy(isPlaying = false)
@@ -50,7 +54,15 @@ class AudioViewModel @Inject constructor(
             }
         }
     }
-
+    fun clearIpAddress() {
+        viewModelScope.launch {
+            // Clear the saved IP address from SharedPreferences
+            SharedPreferencesIpAddress.clearSavedIpAddress(context)
+            // Reset RetrofitManager to default localhost URL
+            retrofitManager.updateBaseUrl("http://localhost:3000")
+        }
+        SharedPreferencesIpAddress.isSaved = false
+    }
     fun startRecording() {
         try {
             if (outputFile.exists()) {
@@ -157,7 +169,8 @@ class AudioViewModel @Inject constructor(
                     )
                     val requestFile = outputFile.asRequestBody("audio/mpeg".toMediaTypeOrNull())
                     val multipartBody = MultipartBody.Part.createFormData("audioFile", outputFile.name, requestFile)
-                    val response = repository.uploadAudio(multipartBody)
+//                    val response = repository.uploadAudio(multipartBody)
+                    val response = api.uploadAudio(multipartBody)
                     if (response.isSuccessful) {
                         _state.value = _state.value.copy(
                             isUploading = false,

@@ -115,7 +115,6 @@ import com.kg.mobilecomapp.utility.SharedPreferencesIpAddress
 @Composable
 fun IPAddressScreen(navController: NavController, retrofitManager: RetrofitManager) {
     var ipAddress by remember { mutableStateOf("") }
-    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -124,7 +123,7 @@ fun IPAddressScreen(navController: NavController, retrofitManager: RetrofitManag
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Enter Server IP Address", style = MaterialTheme.typography.titleLarge)
+        Text("Enter Server IP Address", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.inverseOnSurface)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -145,7 +144,7 @@ fun IPAddressScreen(navController: NavController, retrofitManager: RetrofitManag
             },
             enabled = ipAddress.isNotBlank()
         ) {
-            Text("Save and Continue")
+            Text("Continue")
         }
     }
 }

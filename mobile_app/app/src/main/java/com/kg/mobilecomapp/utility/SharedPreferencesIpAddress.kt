@@ -5,7 +5,7 @@ import android.util.Log
 import javax.inject.Singleton
 
 object SharedPreferencesIpAddress {
-    private var isSaved : Boolean = false
+    var isSaved : Boolean = false
     fun getIsSaved(): Boolean {
         return isSaved
     }
@@ -22,7 +22,7 @@ object SharedPreferencesIpAddress {
     fun getSavedIpAddress(context: Context): String? {
         val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString(
-            "ip_address",
+            "base_url",
             null
         ) // Return null if no IP address is saved
     }

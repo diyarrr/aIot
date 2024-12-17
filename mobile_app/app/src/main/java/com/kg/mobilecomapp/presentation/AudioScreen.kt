@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,7 +28,6 @@ import com.kg.mobilecomapp.utility.SharedPreferencesIpAddress.clearSavedIpAddres
 @Composable
 fun AudioScreen (viewModel: AudioViewModel = hiltViewModel(), navController: NavController) {
     val state = viewModel.state.value
-    val context = LocalContext.current
     // Layout for the screen
     Column(
         modifier = Modifier
@@ -37,6 +37,9 @@ fun AudioScreen (viewModel: AudioViewModel = hiltViewModel(), navController: Nav
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Recording Controls
+//        Text(text = "IP Address: ${SharedPreferencesIpAddress.getSavedIpAddress(LocalContext.current)}",
+//            style = MaterialTheme.typography.titleLarge,
+//            color = MaterialTheme.colorScheme.inverseOnSurface)
         Button(
             onClick = {
                 if (state.isRecording) {
@@ -79,26 +82,6 @@ fun AudioScreen (viewModel: AudioViewModel = hiltViewModel(), navController: Nav
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//        // On and Off Buttons
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween
-//        ) {
-//            Button(
-//                onClick = { viewModel.sendDesiredLambStatus(true) },
-//                modifier = Modifier.weight(1f)
-//            ) {
-//                Text("Send On")
-//            }
-////            Spacer(modifier = Modifier.width(8.dp))
-////            Button(
-////                onClick = { viewModel.sendDesiredLambStatus(false) },
-////                modifier = Modifier.weight(1f)
-////            ) {
-////                Text("Send Off")
-////            }
-//        }
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // Error Message
@@ -112,6 +95,7 @@ fun AudioScreen (viewModel: AudioViewModel = hiltViewModel(), navController: Nav
         }
 
         Button(onClick = {
+            viewModel.clearIpAddress()
             navController.navigate(Screen.IPAddressScreen.route) // Redirect to IP address input screen
         }) {
             Text("Clear IP Address")
